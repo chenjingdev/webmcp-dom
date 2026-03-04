@@ -1,0 +1,12 @@
+{
+  "name": "webmcp-dom-suite",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@10.23.0",
+  "scripts": {
+    "build": "pnpm -r --filter \"@webmcp-dom/*\" run build",
+    "typecheck": "pnpm -r --filter \"@webmcp-dom/*\" run typecheck",
+    "test": "pnpm -r --filter \"@webmcp-dom/*\" run test",
+    "test:bundlers": "pnpm --filter @webmcp-dom/build-core run test:bundlers"
+  }
+}
