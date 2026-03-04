@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@webmcp-dom/build-core": "workspace:*",
+    "@webmcp-dom/companion-client": "workspace:*",
     "@webmcp-dom/polyfill": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

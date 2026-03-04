@@ -9,7 +9,8 @@
     "test": "pnpm -r --filter \"@webmcp-dom/*\" run test",
     "test:bundlers": "pnpm --filter @webmcp-dom/build-core run test:bundlers",
     "build:apps": "pnpm -r --filter \"./apps/**\" --if-present run build",
-    "dev:mcp-test": "pnpm -C apps/mcp-test-page dev",
-    "dev:bridge-inspector": "pnpm -C apps/bridge-inspector dev"
+    "dev:companion": "pnpm --filter @webmcp-dom/companion run start",
+    "dev:browser-adapter": "pnpm --filter @webmcp-dom/browser-adapter run start",
+    "dev:mcp-test": "pnpm -C apps/mcp-test-page dev"
   }
 }

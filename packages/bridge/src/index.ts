@@ -146,8 +146,8 @@ export async function startBridgeServer(options: BridgeServerOptions): Promise<B
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin
 
-    if (corsOrigins.length > 0) {
-      if (!origin || !corsOrigins.includes(origin)) {
+    if (corsOrigins.length > 0 && origin) {
+      if (!corsOrigins.includes(origin)) {
         writeJson(res, 403, { error: 'CORS origin not allowed' })
         return
       }
