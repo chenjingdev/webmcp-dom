@@ -7,6 +7,9 @@
     "build": "pnpm -r --filter \"@webmcp-dom/*\" run build",
     "typecheck": "pnpm -r --filter \"@webmcp-dom/*\" run typecheck",
     "test": "pnpm -r --filter \"@webmcp-dom/*\" run test",
-    "test:bundlers": "pnpm --filter @webmcp-dom/build-core run test:bundlers"
+    "test:bundlers": "pnpm --filter @webmcp-dom/build-core run test:bundlers",
+    "build:apps": "pnpm -r --filter \"./apps/**\" --if-present run build",
+    "dev:mcp-test": "pnpm -C apps/mcp-test-page dev",
+    "dev:bridge-inspector": "pnpm -C apps/bridge-inspector dev"
   }
 }

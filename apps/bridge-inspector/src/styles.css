@@ -1,0 +1,93 @@
+:root {
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #17212b;
+  background: #f7f8fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f4f6fb 0%, #eef3f8 100%);
+}
+
+.shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 18px 40px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: #445063;
+}
+
+.panel {
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid #d6dde8;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.panel-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bec8d6;
+  border-radius: 8px;
+}
+
+.meta {
+  margin-top: 8px;
+  color: #4e5b70;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+
+li {
+  padding: 9px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #d4deea;
+}
+
+li.info {
+  background: #f8fbff;
+}
+
+li.error {
+  background: #fff2f2;
+  border-color: #ffd0d0;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: #0f6bdc;
+  color: #fff;
+  cursor: pointer;
+}
