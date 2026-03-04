@@ -4,4 +4,7 @@ import webMcpDomPlugin from '@webmcp-dom/build-core'
 
 export default defineConfig({
   plugins: [react(), webMcpDomPlugin()],
+  server: {
+    allowedHosts: ['.trycloudflare.com', 'localhost', '127.0.0.1'],
+  },
 })
