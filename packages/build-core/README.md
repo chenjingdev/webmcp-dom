@@ -81,4 +81,7 @@ webMcpDomPlugin({
 - `navigator.modelContext.registerTool`이 없으면 경고 후 no-op
 - v1 실행 액션은 `click`
 - grouped 모드에서는 `target` 인자로 클릭 대상을 선택
-
+- dev HMR에서 manifest가 바뀌면 기존 등록을 정리하고 재등록
+  - `unregisterTool`이 있으면 이전 tool을 제거 후 최신 manifest 반영
+- `webmcp.manifest.json` 파일은 build 결과물에서 생성됨
+  - dev 중 최신 값은 virtual module(`@webmcp-dom/build-core/manifest`) 기준으로 동작

@@ -43,6 +43,33 @@ describe('compiler', () => {
     expect(confirm?.toolDescOverride).toBe('모달 조작')
   })
 
+  it('jsx에서도 상위 group/tool 메타를 수집한다', () => {
+    const source = `
+      const App = () => (
+        <section data-mcp-group="navigation" data-mcp-tool-name="navigation_click" data-mcp-tool-desc="상위 네비게이션">
+          <button data-mcp-action="click" data-mcp-name="home" data-mcp-desc="홈">Home</button>
+          <div data-mcp-group="modal" data-mcp-tool-name="modal_click" data-mcp-tool-desc="모달 조작">
+            <button data-mcp-action="click" data-mcp-name="confirm" data-mcp-desc="확인">Confirm</button>
+          </div>
+        </section>
+      )
+    `
+
+    const result = compileSource(source, 'src/App.tsx', resolveOptions())
+
+    expect(result.entries).toHaveLength(2)
+    const home = result.entries.find(entry => entry.target.name === 'home')
+    const confirm = result.entries.find(entry => entry.target.name === 'confirm')
+
+    expect(home?.groupId).toBe('navigation')
+    expect(home?.toolNameOverride).toBe('navigation_click')
+    expect(home?.toolDescOverride).toBe('상위 네비게이션')
+
+    expect(confirm?.groupId).toBe('modal')
+    expect(confirm?.toolNameOverride).toBe('modal_click')
+    expect(confirm?.toolDescOverride).toBe('모달 조작')
+  })
+
   it('필수 속성 누락 시 컴파일 에러를 반환한다', () => {
     const source = `<button data-mcp-action="click">Go</button>`
     const result = compileSource(source, 'src/app.html', resolveOptions())

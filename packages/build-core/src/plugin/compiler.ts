@@ -2,7 +2,7 @@ import { parse as parseHtml } from 'parse5'
 import MagicString from 'magic-string'
 import { parse as babelParse } from '@babel/parser'
 import traverseModule from '@babel/traverse'
-import type { JSXAttribute, JSXOpeningElement } from '@babel/types'
+import type { JSXAttribute, JSXElement, JSXOpeningElement } from '@babel/types'
 import type {
   WebMcpCompiledTarget,
   WebMcpDiagnostic,
@@ -586,10 +586,20 @@ function readJsxOptionalMeta(
 
 function getJsxAncestorOpeningElements(path: any): JSXOpeningElement[] {
   const result: JSXOpeningElement[] = []
+  const seen = new Set<JSXOpeningElement>()
+  const pushUnique = (opening: JSXOpeningElement | null | undefined) => {
+    if (!opening || seen.has(opening)) return
+    seen.add(opening)
+    result.push(opening)
+  }
+
   let cursor = path
   while (cursor) {
     if (cursor.isJSXOpeningElement?.()) {
-      result.push(cursor.node as JSXOpeningElement)
+      pushUnique(cursor.node as JSXOpeningElement)
+    }
+    if (cursor.isJSXElement?.()) {
+      pushUnique((cursor.node as JSXElement).openingElement)
     }
     cursor = cursor.parentPath
   }

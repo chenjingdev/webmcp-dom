@@ -15,6 +15,7 @@ import type { WebMcpDomPluginOptions } from '../types'
 import { compileSource } from './compiler'
 import { toGroupToolName, toPerElementToolName } from './helpers'
 import { resolveOptions } from './options'
+import { createViteHmrBridge } from './vite-hmr'
 
 const VIRTUAL_MANIFEST_ID = 'virtual:webmcp-dom/manifest'
 const COMPAT_MANIFEST_ID = 'webmcp-dom/manifest'
@@ -185,6 +186,30 @@ export const webMcpDomUnplugin = createUnplugin<WebMcpDomPluginOptions | undefin
       return toManifest(entries, options)
     }
 
+    const updateEntries = (
+      relativePath: string,
+      nextEntries: WebMcpCompiledTarget[],
+    ): { changed: boolean } => {
+      const prev = entriesByFile.get(relativePath)
+      const prevSerialized = prev ? JSON.stringify(prev) : ''
+      const nextSerialized = nextEntries.length > 0 ? JSON.stringify(nextEntries) : ''
+
+      if (nextEntries.length > 0) {
+        entriesByFile.set(relativePath, nextEntries)
+      } else {
+        entriesByFile.delete(relativePath)
+      }
+
+      return { changed: prevSerialized !== nextSerialized }
+    }
+
+    const viteHmr = createViteHmrBridge({
+      options,
+      shouldHandleFile,
+      toCurrentManifest,
+      updateEntries,
+    })
+
     return {
       name: 'webmcp-dom',
       enforce: 'pre',
@@ -251,11 +276,7 @@ export const webMcpDomUnplugin = createUnplugin<WebMcpDomPluginOptions | undefin
           Boolean(this.meta?.watchMode),
         )
 
-        if (result.entries.length > 0) {
-          entriesByFile.set(relativePath, result.entries)
-        } else {
-          entriesByFile.delete(relativePath)
-        }
+        const { changed: entriesChanged } = updateEntries(relativePath, result.entries)
 
         const warnings = result.diagnostics.filter(d => d.level === 'warning')
         const errors = result.diagnostics.filter(d => d.level === 'error')
@@ -276,10 +297,26 @@ export const webMcpDomUnplugin = createUnplugin<WebMcpDomPluginOptions | undefin
         }
 
         if (!result.changed) return null
+
+        if (Boolean(this.meta?.watchMode) && entriesChanged) {
+          viteHmr.emitManifestUpdate()
+        }
+
         return {
           code: result.code,
           map: null,
         }
+      },
+
+      // TODO(webmcp-dom): webpack/rollup dev 훅도 adapter bridge로 동일 패턴 적용.
+      vite: {
+        configureServer(server) {
+          viteHmr.configureServer(server)
+        },
+
+        async handleHotUpdate(ctx) {
+          return viteHmr.handleHotUpdate(ctx)
+        },
       },
 
       generateBundle(this: any) {

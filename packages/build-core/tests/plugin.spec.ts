@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { webMcpDomUnplugin } from '../src/plugin/index'
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
+import { WEBMCP_MANIFEST_UPDATE_EVENT } from '../src/hmr-events'
 
 type HookContext = {
   warn: (message: string) => void
@@ -105,5 +108,57 @@ describe('plugin', () => {
     expect(
       tools.some((tool: { status: string }) => tool.status === 'skipped_unsupported_action'),
     ).toBe(true)
+  })
+
+  it('vite handleHotUpdate에서 custom manifest-update 이벤트를 전송한다', async () => {
+    const vitePlugin = webMcpDomUnplugin.vite()
+    const plugin = (Array.isArray(vitePlugin) ? vitePlugin[0] : vitePlugin) as any
+
+    const configureServer = plugin.vite?.configureServer as
+      | ((server: unknown) => void)
+      | undefined
+    const handleHotUpdate = plugin.vite?.handleHotUpdate as
+      | ((ctx: unknown) => Promise<unknown>)
+      | undefined
+    expect(typeof configureServer).toBe('function')
+    expect(typeof handleHotUpdate).toBe('function')
+
+    const sent: Array<{ type: string; event: string; data: unknown }> = []
+
+    configureServer?.({
+      ws: {
+        send: (payload: { type: string; event: string; data: unknown }) => {
+          sent.push(payload)
+        },
+      },
+      moduleGraph: {
+        getModuleById: () => undefined,
+        invalidateModule: () => {},
+      },
+    } as never)
+
+    const tempFile = path.join(process.cwd(), '__tmp_webmcp_hmr_test.tsx')
+    await fs.writeFile(
+      tempFile,
+      `<button data-mcp-action="click" data-mcp-name="home" data-mcp-desc="홈">Home</button>`,
+      'utf8',
+    )
+
+    try {
+      const updated = await handleHotUpdate?.({
+        file: tempFile,
+        modules: [],
+      } as never)
+
+      const event = sent.find(payload => payload.event === WEBMCP_MANIFEST_UPDATE_EVENT)
+      expect(event).toBeDefined()
+      expect(event?.type).toBe('custom')
+      expect(event?.data).toHaveProperty('manifest')
+      expect(event?.data).toHaveProperty('runtimeOptions')
+      expect(Array.isArray(updated)).toBe(true)
+      expect(updated).toEqual([])
+    } finally {
+      await fs.rm(tempFile, { force: true })
+    }
   })
 })

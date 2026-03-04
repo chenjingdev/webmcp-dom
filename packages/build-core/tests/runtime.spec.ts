@@ -134,6 +134,46 @@ describe('runtime', () => {
     expect(res.content[0].text).toContain('target 인자가 필요합니다')
   })
 
+  it('다중 target inputSchema에 target name/desc 메타를 포함한다', () => {
+    const tools: Array<{ inputSchema: Record<string, unknown> }> = []
+    Object.defineProperty(navigator, 'modelContext', {
+      configurable: true,
+      value: {
+        registerTool: (tool: { inputSchema: Record<string, unknown> }) => {
+          tools.push(tool)
+        },
+      },
+    })
+
+    registerCompiledWebMcpTools(makeManifest())
+
+    expect(tools).toHaveLength(1)
+    const schema = tools[0].inputSchema as {
+      properties?: {
+        target?: {
+          enum?: string[]
+          oneOf?: Array<{ const?: string; title?: string; description?: string }>
+        }
+      }
+    }
+    const target = schema.properties?.target
+    expect(target?.enum).toEqual(['home', 'menu1'])
+    expect(target?.oneOf).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          const: 'home',
+          title: 'home',
+          description: '홈 탭',
+        }),
+        expect.objectContaining({
+          const: 'menu1',
+          title: 'menu1',
+          description: '메뉴1 탭',
+        }),
+      ]),
+    )
+  })
+
   it('disabled 요소는 구조화 에러를 반환한다', async () => {
     const button = document.createElement('button')
     button.disabled = true
@@ -186,5 +226,37 @@ describe('runtime', () => {
     expect(res.isError).toBeUndefined()
     expect(res.content[0].text).toContain('Clicked')
     expect(scrollSpy).toHaveBeenCalled()
+  })
+
+  it('재등록 시 이전 tool을 정리하고 최신 tool로 교체한다', () => {
+    const registerTool = vi.fn()
+    const unregisterTool = vi.fn()
+
+    Object.defineProperty(navigator, 'modelContext', {
+      configurable: true,
+      value: {
+        registerTool,
+        unregisterTool,
+      },
+    })
+
+    const first = makeManifest()
+    const second = makeManifest()
+    second.groups[0].tools[0].toolName = 'wmcp_navigation_click__2'
+
+    registerCompiledWebMcpTools(first)
+    const latest = registerCompiledWebMcpTools(second)
+
+    expect(
+      unregisterTool.mock.calls.some(([name]) => name === 'wmcp_navigation_click__1'),
+    ).toBe(true)
+    expect(
+      registerTool.mock.calls.some(([tool]) => tool.name === 'wmcp_navigation_click__2'),
+    ).toBe(true)
+
+    latest.dispose()
+    expect(
+      unregisterTool.mock.calls.some(([name]) => name === 'wmcp_navigation_click__2'),
+    ).toBe(true)
   })
 })
